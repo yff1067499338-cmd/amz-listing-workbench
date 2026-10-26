@@ -1,0 +1,1167 @@
+<html lang="zh-CN"><head><style>body::-webkit-scrollbar,.standard-scrollbar::-webkit-scrollbar{-webkit-appearance:none;background-color:transparent;width:7px;height:7px;}body::-webkit-scrollbar-thumb,.standard-scrollbar::-webkit-scrollbar-thumb{background:rgba(187,191,196,0.5);width:7px;border-radius:3px;display:block;min-height:38px;min-width:38px;}body::-webkit-scrollbar-track,.standard-scrollbar::-webkit-scrollbar-track{background-color:transparent;display:block;}@media print { body.unprintable * { visibility: hidden !important; } }</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Listing 优化工作台 4.2</title>
+<style>
+  
+  :root {
+    --bg:#F7F6F2;--surface:#FFFFFF;--surface2:#F0EFE9;--border:#E2E0D8;--border2:#CCCAB8;
+    --text:#1A1917;--text2:#6B6860;--text3:#9C9A93;
+    --green:#1A7A4A;--green-bg:#E8F5EE;--green-light:#C6E8D5;
+    --amber:#B45309;--amber-bg:#FEF3C7;
+    --red:#C0392B;--red-bg:#FDECEA;
+    --blue:#1D4E89;--blue-bg:#EBF2FB;
+    --purple:#6B21A8;--purple-bg:#F3E8FF;
+    --radius:10px;--radius-sm:6px;
+    --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+    --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
+  .app{display:flex;min-height:100vh;}
+  /* Sidebar */
+  .sidebar{width:224px;min-width:224px;background:var(--surface);border-right:1px solid var(--border);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:10;}
+  .sidebar-brand{padding:20px 20px 14px;border-bottom:1px solid var(--border);}
+  .sidebar-brand h1{font-size:13px;font-weight:600;color:var(--text);letter-spacing:-.01em;line-height:1.3;}
+  .sidebar-brand .version{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace;}
+  .sidebar-nav{flex:1;padding:12px 10px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;margin-bottom:2px;transition:all .15s;color:var(--text2);font-size:13px;font-weight:400;border:none;background:none;width:100%;text-align:left;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:var(--text);color:#FFF;font-weight:500;}
+  .nav-item.done:not(.active){color:var(--green);}
+  .nav-num{width:22px;height:22px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;font-family:'DM Mono',monospace;flex-shrink:0;}
+  .nav-item.active .nav-num{background:rgba(255,255,255,.2);color:#fff;}
+  .nav-item.done:not(.active) .nav-num{background:var(--green-bg);color:var(--green);}
+  .nav-label{flex:1;}
+  .sidebar-footer{padding:10px 10px;border-top:1px solid var(--border);}
+  .progress-label{font-size:11px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between;}
+  .progress-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s ease;}
+  .sidebar-data-actions{padding:8px 0 0;}
+  .sidebar-data-actions button,.sidebar-data-actions label.fake-btn{width:100%;padding:7px 10px;border-radius:var(--radius-sm);font-size:11px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--text3);text-align:center;margin-bottom:4px;display:block;box-sizing:border-box;}
+  .sidebar-data-actions button:hover,.sidebar-data-actions label.fake-btn:hover{background:var(--surface2);color:var(--text2);}
+  .sidebar-data-actions button.danger:hover{background:var(--red-bg);color:var(--red);border-color:var(--red);}
+  .save-indicator{font-size:10px;color:var(--green);text-align:center;padding:4px 0;opacity:0;transition:opacity .3s;font-family:'DM Mono',monospace;}
+  .save-indicator.show{opacity:1;}
+  /* Main */
+  .main{margin-left:224px;flex:1;display:flex;flex-direction:column;}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:5;}
+  .topbar-title{font-size:15px;font-weight:600;}
+  .topbar-sub{font-size:12px;color:var(--text3);margin-top:1px;}
+  .content{padding:24px 32px;max-width:800px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  /* Cards */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:14px;}
+  /* Forms */
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .field-row.single{grid-template-columns:1fr;}
+  .field-row.triple{grid-template-columns:1fr 1fr 1fr;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:12px;font-weight:500;color:var(--text2);}
+  .field label .req{color:var(--red);margin-left:2px;}
+  .field .hint{font-size:11px;color:var(--text3);margin-top:2px;}
+  input[type=text],input[type=password],textarea,select{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--surface);transition:border-color .15s,box-shadow .15s;outline:none;width:100%;}
+  input[type=text]:focus,input[type=password]:focus,textarea:focus,select:focus{border-color:var(--text);box-shadow:0 0 0 3px rgba(26,25,23,.06);}
+  textarea{resize:vertical;line-height:1.5;}
+  select{cursor:pointer;}
+  ::placeholder{color:var(--text3);}
+  /* Blocked keywords zone */
+  .blocked-wrap{border:1px solid #FECACA;background:#FFF5F5;border-radius:var(--radius-sm);padding:10px 12px;}
+  .blocked-title{font-size:11px;font-weight:600;color:var(--red);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .blocked-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  /* Toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);}
+  .toggle-row:last-child{border-bottom:none;}
+  .toggle{position:relative;width:38px;height:22px;flex-shrink:0;}
+  .toggle input{opacity:0;width:0;height:0;}
+  .toggle-track{position:absolute;inset:0;background:var(--border2);border-radius:11px;cursor:pointer;transition:.2s;}
+  .toggle-track:before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:white;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .toggle input:checked+.toggle-track{background:var(--green);}
+  .toggle input:checked+.toggle-track:before{transform:translateX(16px);}
+  /* Chips */
+  .chips-wrap{min-height:40px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;cursor:text;background:var(--surface);transition:border-color .15s;}
+  .chips-wrap:focus-within{border-color:var(--text);box-shadow:0 0 0 3px rgba(26,25,23,.06);}
+  .chip{background:var(--text);color:white;font-size:12px;padding:2px 8px 2px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;}
+  .chip.red-chip{background:var(--red);}
+  .chip-x{cursor:pointer;opacity:.6;font-size:14px;line-height:1;padding:0 2px;}
+  .chip-x:hover{opacity:1;}
+  .chips-wrap input{border:none!important;box-shadow:none!important;padding:0!important;width:auto;min-width:80px;flex:1;font-size:13px;background:transparent!important;}
+  /* Image upload */
+  .img-upload-area{border:2px dashed var(--border2);border-radius:var(--radius-sm);padding:16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface2);}
+  .img-upload-area:hover{border-color:var(--text2);background:var(--border);}
+  .img-upload-area input[type=file]{display:none;}
+  .img-upload-area .upload-icon{font-size:24px;margin-bottom:6px;}
+  .img-upload-area .upload-text{font-size:12px;color:var(--text2);}
+  .img-upload-area .upload-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+  .img-previews{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .img-preview-item{position:relative;width:90px;height:90px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);background:var(--surface2);}
+  .img-preview-item img{width:100%;height:100%;object-fit:cover;}
+  .img-remove-btn{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.65);color:white;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+  .img-add-btn{width:90px;height:90px;border:2px dashed var(--border2);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:var(--text3);background:var(--surface2);transition:all .15s;}
+  .img-add-btn:hover{border-color:var(--text2);color:var(--text2);}
+  /* Competitor */
+  .comp-card{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;overflow:hidden;}
+  .comp-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--surface2);cursor:pointer;font-size:13px;font-weight:500;user-select:none;}
+  .comp-header:hover{background:var(--border);}
+  .comp-header-left{display:flex;align-items:center;gap:8px;flex:1;}
+  .comp-badge-req{font-size:10px;background:var(--red-bg);color:var(--red);padding:1px 6px;border-radius:3px;font-weight:600;}
+  .comp-badge-opt{font-size:10px;background:var(--blue-bg);color:var(--blue);padding:1px 6px;border-radius:3px;font-weight:600;}
+  .comp-header-actions{display:flex;align-items:center;gap:8px;}
+  .comp-remove-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;transition:color .15s;}
+  .comp-remove-btn:hover{color:var(--red);}
+  .comp-body{display:none;padding:14px;}
+  .comp-body.open{display:block;}
+  .comp-arrow{font-size:10px;color:var(--text3);transition:transform .15s;}
+  .comp-arrow.open{transform:rotate(180deg);}
+  /* Review analysis */
+  .review-analysis-box{background:var(--purple-bg);border:1px solid #DDD6FE;border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;font-size:12px;}
+  .review-analysis-title{font-size:11px;font-weight:600;color:var(--purple);margin-bottom:8px;}
+  .review-tag-group{margin-bottom:8px;}
+  .review-tag-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:4px;}
+  .review-tags{display:flex;flex-wrap:wrap;gap:4px;}
+  .review-tag{background:white;border:1px solid #C4B5FD;color:var(--purple);font-size:11px;padding:2px 8px;border-radius:20px;}
+  .review-tag.use{border-color:#93C5FD;color:var(--blue);background:#EFF6FF;}
+  .review-tag.persona{border-color:#86EFAC;color:var(--green);background:#F0FFF4;}
+  .review-tag.emotion-pos{border-color:#FCD34D;color:#92400E;background:#FFFBEB;}
+  .review-tag.emotion-neg{border-color:#FCA5A5;color:var(--red);background:#FFF5F5;}
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--text);text-decoration:none;}
+  .btn:hover{background:var(--surface2);}
+  .btn:active{transform:scale(.98);}
+  .btn.primary{background:var(--text);color:white;border-color:var(--text);}
+  .btn.primary:hover{background:#333;}
+  .btn.green{background:var(--green);color:white;border-color:var(--green);}
+  .btn.green:hover{background:#155C39;}
+  .btn.purple{background:var(--purple);color:white;border-color:var(--purple);}
+  .btn.purple:hover{background:#581C87;}
+  .btn.full{width:100%;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  /* Result */
+  .result-wrap{margin-top:14px;}
+  .result-box{background:#1A1917;color:#E8E6DF;border-radius:var(--radius);padding:16px 18px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.75;white-space:pre-wrap;word-break:break-word;min-height:120px;max-height:540px;overflow-y:auto;display:none;}
+  .result-box.loading{color:#6B6860;}
+  .result-box.show{display:block;}
+  .result-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .result-actions .btn{font-size:12px;padding:6px 13px;}
+  /* Notes */
+  .flow-note{display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--green-bg);border:1px solid var(--green-light);border-radius:var(--radius-sm);margin-bottom:14px;font-size:12px;color:var(--green);}
+  .flow-dot{width:7px;height:7px;background:var(--green);border-radius:50%;flex-shrink:0;}
+  .info-note{display:flex;align-items:flex-start;gap:8px;padding:11px 13px;background:var(--blue-bg);border:1px solid #C5D9F0;border-radius:var(--radius-sm);margin-bottom:14px;font-size:12px;color:var(--blue);line-height:1.5;}
+  .warn-note{display:flex;align-items:flex-start;gap:8px;padding:11px 13px;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:var(--radius-sm);margin-bottom:14px;font-size:12px;color:var(--amber);line-height:1.5;}
+  /* Toast */
+  .copy-toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:white;padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:100;box-shadow:var(--shadow-md);}
+  .copy-toast.show{opacity:1;}
+  .result-box::-webkit-scrollbar{width:6px;}
+  .result-box::-webkit-scrollbar-track{background:transparent;}
+  .result-box::-webkit-scrollbar-thumb{background:#444;border-radius:3px;}
+  /* API config */
+  .api-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow);}
+  .api-card-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+  .api-card-header-left{display:flex;align-items:center;gap:8px;}
+  .api-card-title{font-size:12px;font-weight:600;color:var(--text);}
+  .api-status{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;}
+  .api-status.connected{background:var(--green-bg);color:var(--green);}
+  .api-status.disconnected{background:var(--red-bg);color:var(--red);}
+  .api-card-body{margin-top:14px;}
+  .api-card-body.collapsed{display:none;}
+  .api-card-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-end;}
+  .api-card-row .field{flex:1;}
+  .api-card-row .field.narrow{flex:0 0 210px;}
+  .api-card-hint{font-size:11px;color:var(--text3);line-height:1.5;}
+  .api-card-hint a{color:var(--blue);text-decoration:underline;}
+  /* XLS table */
+  .kw-table-wrap{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:12px;}
+  .kw-table{width:100%;border-collapse:collapse;font-size:13px;font-family:'DM Mono',monospace;}
+  .kw-table thead th{background:var(--surface2);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);border-bottom:1px solid var(--border);font-family:'DM Sans',sans-serif;}
+  .kw-table tbody td{padding:0;border-bottom:1px solid var(--border);}
+  .kw-table tbody tr:last-child td{border-bottom:none;}
+  .kw-table tbody td input{border:none!important;border-radius:0!important;padding:7px 12px!important;font-family:'DM Mono',monospace!important;font-size:12px!important;background:transparent!important;box-shadow:none!important;width:100%;}
+  .kw-table tbody td input:focus{background:var(--blue-bg)!important;}
+  .kw-table tbody td:first-child{border-right:1px solid var(--border);}
+  .kw-table tbody td.row-action{width:36px;text-align:center;padding:0;border-left:1px solid var(--border);}
+  .kw-table tbody td.row-action button{background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:6px;line-height:1;transition:color .15s;}
+  .kw-table tbody td.row-action button:hover{color:var(--red);}
+  .table-actions{display:flex;gap:8px;align-items:center;}
+  .table-actions .btn{font-size:11px;padding:5px 12px;}
+  .import-label{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:var(--radius-sm);font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);transition:all .15s;font-family:'DM Sans',sans-serif;}
+  .import-label:hover{background:var(--surface2);}
+  .import-label input[type=file]{display:none;}
+  /* Export XLS button style */
+  .export-xls-btn{font-size:11px;padding:5px 12px;background:var(--green-bg);border-color:var(--green-light);color:var(--green);}
+  .export-xls-btn:hover{background:var(--green-light)!important;}
+  /* Section divider */
+  .section-divider{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);padding:6px 0 10px;border-top:1px solid var(--border);margin-top:4px;}
+  @media(max-width:700px){.sidebar{display:none;}.main{margin-left:0;}.content{padding:16px;}.field-row{grid-template-columns:1fr;}.api-card-row{flex-direction:column;}.api-card-row .field.narrow{flex:1;}.blocked-row{grid-template-columns:1fr;}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head><style>@media print { body.unprintable * { visibility: hidden !important; } } body.unprintable { user-select: none !important; -webkit-user-select: none !important; }</style><body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>Amazon Listing<br>优化工作台</h1>
+      <div class="version">v4.2 · US站 · Kimi K2.6</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="gotoStep(1)" id="tab1"><div class="nav-num">1</div><span class="nav-label">产品建档</span></button>
+      <button class="nav-item" onclick="gotoStep(2)" id="tab2"><div class="nav-num">2</div><span class="nav-label">竞品情报</span></button>
+      <button class="nav-item" onclick="gotoStep(3)" id="tab3"><div class="nav-num">3</div><span class="nav-label">关键词战略</span></button>
+      <button class="nav-item" onclick="gotoStep(4)" id="tab4"><div class="nav-num">4</div><span class="nav-label">Listing生成</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="progress-label"><span>完成进度</span><span id="prog-text">0 / 4</span></div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="save-indicator" id="save-indicator">✓ 已自动保存</div>
+      <div class="sidebar-data-actions">
+        <label class="fake-btn" style="background:#1A7A4A;color:white;border-color:#1A7A4A" onmouseover="this.style.background='#155C39'" onmouseout="this.style.background='#1A7A4A'">
+          📥 导入 XLS 项目模板
+          <input type="file" accept=".xlsx,.xls,.xlsm,.csv" onchange="importProjectXLS(event)" style="display:none">
+        </label>
+        <button onclick="downloadProjectTemplate()">📋 下载空白 XLS 模板</button>
+        <button onclick="exportProjectXLS()">📊 导出完整项目 (XLS)</button>
+        <label class="fake-btn" onmouseover="this.style.background='var(--surface2)';this.style.color='var(--text2)'" onmouseout="this.style.background='var(--surface)';this.style.color='var(--text3)'">
+          📂 导入项目存档 (JSON)
+          <input type="file" accept=".json" onchange="importProject(event)" style="display:none">
+        </label>
+        <button onclick="exportProjectJSON()" style="font-size:10px">💾 导出 JSON 存档</button>
+        <button class="danger" onclick="clearAllData()">🗑 清空全部数据</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="topbar-title">Step 1 · 产品信息建档与需求假设</div>
+        <div class="topbar-sub" id="topbar-sub">填写产品基础属性和需求假设，AI将进行逻辑自检与关键词预判</div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- API Config -->
+      <div class="api-card" id="api-card">
+        <div class="api-card-header" onclick="toggleApiCard()">
+          <div class="api-card-header-left">
+            <span style="font-size:14px">⚙</span>
+            <span class="api-card-title">Kimi / Moonshot API 配置</span>
+            <span class="api-status disconnected" id="api-status">未连接</span>
+          </div>
+          <span class="comp-arrow" id="api-arrow" style="font-size:10px;color:var(--text3)">▼</span>
+        </div>
+        <div class="api-card-body" id="api-body">
+          <div class="api-card-hint" style="margin-bottom:10px">
+            国内用户：<a href="https://platform.moonshot.cn" target="_blank">platform.moonshot.cn</a> · 国际用户（VPN）：<a href="https://platform.moonshot.ai" target="_blank">platform.moonshot.ai</a>。密钥仅存储在本地浏览器，不会上传。
+          </div>
+          <div class="api-card-row">
+            <div class="field"><label>API Key</label><input type="password" id="api-key-input" placeholder="粘贴你的 Kimi API Key…"></div>
+            <div class="field narrow">
+              <label>API 入口（地区）</label>
+              <select id="api-endpoint" onchange="onEndpointChange()">
+                <option value="https://api.moonshot.cn/v1">🇨🇳 api.moonshot.cn — 国内</option>
+                <option value="https://api.moonshot.ai/v1">🌍 api.moonshot.ai — 国际</option>
+              </select>
+            </div>
+          </div>
+          <div class="api-card-row">
+            <div class="field narrow">
+              <label>模型版本</label>
+              <select id="api-model">
+                <optgroup label="── K2.6 系列（最新·支持图片）──">
+                  <option value="kimi-k2.6">kimi-k2.6 ✦ 最强推荐</option>
+                  <option value="kimi-k2.6-thinking">kimi-k2.6-thinking（深度推理）</option>
+                </optgroup>
+                <optgroup label="── K2.5 系列（支持图片）──">
+                  <option value="kimi-k2.5" selected="">kimi-k2.5（均衡推荐）</option>
+                  <option value="kimi-k2.5-thinking">kimi-k2.5-thinking（深度推理）</option>
+                </optgroup>
+                <optgroup label="── K2 系列 ──">
+                  <option value="kimi-k2">kimi-k2</option>
+                  <option value="kimi-k2-thinking">kimi-k2-thinking</option>
+                </optgroup>
+                <optgroup label="── moonshot 旧版（稳定）──">
+                  <option value="moonshot-v1-8k">moonshot-v1-8k</option>
+                  <option value="moonshot-v1-32k">moonshot-v1-32k</option>
+                  <option value="moonshot-v1-128k">moonshot-v1-128k</option>
+                </optgroup>
+              </select>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:8px;padding-bottom:1px">
+              <button class="btn primary" onclick="saveApiKey()">保存配置</button>
+              <button class="btn" onclick="testApiKey()">测试连接</button>
+            </div>
+          </div>
+          <div class="api-card-hint">⚠ kimi-k2.6 / kimi-k2.5 支持图片分析；旧版 moonshot-v1 不支持图片。上传实拍图时请选择 K2.5 或 K2.6。</div>
+        </div>
+      </div>
+
+      <!-- STEP 1 -->
+      <div class="panel active" id="panel1">
+        <div class="card">
+          <div class="card-title">基础属性</div>
+          <div class="field-row">
+            <div class="field"><label>产品名称<span class="req">*</span></label><input type="text" id="s1_name" placeholder="如：折叠自行车锁"></div>
+            <div class="field"><label>核心材质<span class="req">*</span></label><input type="text" id="s1_material" placeholder="如：hardened steel"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>规格参数<span class="req">*</span></label><input type="text" id="s1_spec" placeholder="尺寸/重量/容量等，如：380g, 30cm展开"></div>
+            <div class="field"><label>认证信息</label><input type="text" id="s1_cert" placeholder="FDA/CE/UL/专利号等（选填）"></div>
+          </div>
+          <div class="field-row single">
+            <div class="field"><label>核心功能<span class="req">*</span></label><textarea id="s1_func" rows="3" placeholder="解决什么问题？如：快速锁定自行车，5秒展开，轻便随身携带"></textarea></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">需求假设</div>
+          <div class="field-row">
+            <div class="field"><label>目标人群<span class="req">*</span></label><input type="text" id="s1_audience" placeholder="年龄+身份+特征，如：25-35岁城市上班族"></div>
+            <div class="field"><label>使用场景<span class="req">*</span></label><input type="text" id="s1_scene" placeholder="地点+时间+行为，如：地铁口锁车10-30分钟"></div>
+          </div>
+          <div class="field-row single">
+            <div class="field"><label>核心痛点<span class="req">*</span></label><textarea id="s1_pain" rows="2" placeholder="现有产品哪里不好？如：传统锁太重1kg+，懒得带"></textarea></div>
+          </div>
+          <div class="field-row single">
+            <div class="field">
+              <label>差异化卖点<span class="req">*</span>（最多3个，输入后按回车）</label>
+              <div class="chips-wrap" id="chips-wrap" onclick="document.getElementById('chip-inp').focus()">
+                <input id="chip-inp" type="text" placeholder="输入后按回车…" onkeydown="addChip(event)">
+              </div>
+              <input type="hidden" id="s1_usp">
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW: 规避词 (simplified to one input) -->
+        <div class="card">
+          <div class="card-title">⛔ 规避词库（一次性输入所有有风险的词）</div>
+          <div class="warn-note">⚠ 把所有不能在 Amazon Listing 中出现的词都填到这里，逗号分隔。AI 生成文案时会严格规避。包括：他人品牌、违禁词、促销词、专利风险词。</div>
+          <div class="field-row single">
+            <div class="field">
+              <label>规避词库<span class="req">*</span></label>
+              <textarea id="s1_blocked" rows="3" placeholder="例：Nike, MagSafe, Apple, best, #1, FDA approved, fingerprint lock, smart lock"></textarea>
+              <div class="hint">用英文逗号或中文逗号分隔，回车也可分隔多组</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEW: 实拍图上传 -->
+        <div class="card">
+          <div class="card-title">📸 产品实拍图（最多3张，AI 识别分析）</div>
+          <div class="info-note">ℹ 上传后 AI 会分析产品外观、卖点、差异化特征，辅助补全建档信息。需使用 kimi-k2.5 或 kimi-k2.6 模型。</div>
+          <div class="img-previews" id="img-previews">
+            <label class="img-add-btn" id="img-add-btn" title="上传图片">
+              +
+              <input type="file" accept="image/*" multiple="" onchange="handleImgUpload(event)" style="display:none">
+            </label>
+          </div>
+          <div style="margin-top:10px">
+            <button class="btn purple" onclick="analyzeImages()" id="analyze-img-btn" style="display:none">🔍 AI 分析实拍图 →</button>
+            <div class="result-box" id="img-result" style="margin-top:10px;max-height:300px;"></div>
+          </div>
+        </div>
+
+        <button class="btn green full" onclick="runStep1()">◆ AI 分析产品策略 →</button>
+        <div class="result-wrap">
+          <div class="result-box" id="result1"></div>
+          <div class="result-actions" id="actions1" style="display:none">
+            <button class="btn" onclick="copyResult('result1')">复制结果</button>
+            <button class="btn export-xls-btn" onclick="exportStepResultXLS(1)">📊 导出 XLS</button>
+            <button class="btn primary" onclick="gotoStep(2)">进入 Step 2 竞品情报 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="panel" id="panel2">
+        <div class="flow-note"><div class="flow-dot"></div>Step 1 产品档案已就绪，填入竞品数据进行需求验证（至少3个必填）</div>
+        <div id="comp-list"></div>
+        <div style="margin-bottom:14px">
+          <button class="btn" onclick="addCompetitor()">+ 添加竞品</button>
+          <span style="font-size:11px;color:var(--text3);margin-left:8px" id="comp-count-hint"></span>
+        </div>
+        <button class="btn green full" onclick="runStep2()">◆ AI 竞品情报分析 →</button>
+        <div class="result-wrap">
+          <div class="result-box" id="result2"></div>
+          <div class="result-actions" id="actions2" style="display:none">
+            <button class="btn" onclick="copyResult('result2')">复制结果</button>
+            <button class="btn export-xls-btn" onclick="exportStepResultXLS(2)">📊 导出 XLS</button>
+            <button class="btn" onclick="gotoStep(1)">← 返回 Step 1</button>
+            <button class="btn primary" onclick="gotoStep(3)">进入 Step 3 关键词战略 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="panel" id="panel3">
+        <div class="flow-note"><div class="flow-dot"></div>Step 2 词库已就绪，补充 ABA 和第三方反查数据，AI 将进行交叉验证</div>
+        <div class="card">
+          <div class="card-title">ABA 官方数据（亚马逊后台品牌分析）</div>
+          <div class="info-note">ℹ 两列格式：关键词 和 ABA 排名（排名数字越小 = 搜索量越大）。可手动输入或导入 XLS 文件。</div>
+          <div class="kw-table-wrap">
+            <table class="kw-table"><thead><tr><th style="width:60%">关键词</th><th>ABA 排名</th><th style="width:36px"></th></tr></thead><tbody id="aba-tbody"></tbody></table>
+          </div>
+          <div class="table-actions">
+            <button class="btn" onclick="addTableRow('aba-tbody',['','']);scheduleSave()">+ 添加行</button>
+            <label class="import-label">📥 导入 XLS<input type="file" accept=".xlsx,.xls,.csv" onchange="importXLS(event,'aba-tbody')"></label>
+            <button class="btn export-xls-btn" onclick="exportTableXLS('aba-tbody',['关键词','ABA排名'],'ABA数据')">📊 导出</button>
+            <button class="btn" style="color:var(--red);border-color:#FECACA" onclick="clearTable('aba-tbody','ABA数据')">🗑 一键清空</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">第三方反查数据（卖家精灵 / Helium10 / Jungle Scout）</div>
+          <div class="info-note">ℹ 两列格式：关键词 和 月搜索量（卖家精灵提供）。可手动输入或导入 XLS 文件。</div>
+          <div class="kw-table-wrap">
+            <table class="kw-table"><thead><tr><th style="width:60%">关键词</th><th>月搜索量</th><th style="width:36px"></th></tr></thead><tbody id="h10-tbody"></tbody></table>
+          </div>
+          <div class="table-actions">
+            <button class="btn" onclick="addTableRow('h10-tbody',['','']);scheduleSave()">+ 添加行</button>
+            <label class="import-label">📥 导入 XLS<input type="file" accept=".xlsx,.xls,.csv" onchange="importXLS(event,'h10-tbody')"></label>
+            <button class="btn export-xls-btn" onclick="exportTableXLS('h10-tbody',['关键词','月搜索量'],'第三方反查')">📊 导出</button>
+            <button class="btn" style="color:var(--red);border-color:#FECACA" onclick="clearTable('h10-tbody','第三方反查')">🗑 一键清空</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">战略配置</div>
+          <div class="field-row single">
+            <div class="field"><label>关键词战略重心</label>
+              <select id="s3_strategy">
+                <option value="balanced">平衡版 — 兼顾流量词与差异化词（推荐新品）</option>
+                <option value="conservative">保守版 — 主打大词，优先铺量流量</option>
+                <option value="aggressive">激进版 — 主打差异化长尾，精准转化</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <button class="btn green full" onclick="runStep3()">◆ AI 关键词战略规划 →</button>
+        <div class="result-wrap">
+          <div class="result-box" id="result3"></div>
+          <div class="result-actions" id="actions3" style="display:none">
+            <button class="btn" onclick="copyResult('result3')">复制结果</button>
+            <button class="btn export-xls-btn" onclick="exportStepResultXLS(3)">📊 导出 XLS</button>
+            <button class="btn" onclick="gotoStep(2)">← 返回 Step 2</button>
+            <button class="btn primary" onclick="gotoStep(4)">进入 Step 4 生成 Listing →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="panel" id="panel4">
+        <div class="flow-note"><div class="flow-dot"></div>所有分析数据已就绪，配置文案风格后一键生成完整 Listing 资产包</div>
+        <div class="card">
+          <div class="card-title">生成配置</div>
+          <div class="field-row">
+            <div class="field"><label>Listing 文案风格</label>
+              <select id="s4_style">
+                <option value="balanced">平衡版 — 兼顾搜索量与差异化（推荐）</option>
+                <option value="conservative">保守版 — 主打大词求稳</option>
+                <option value="aggressive">激进版 — 主打差异化长尾</option>
+              </select>
+            </div>
+            <div class="field"><label>品牌调性</label>
+              <select id="s4_tone">
+                <option value="professional">专业科技感</option>
+                <option value="friendly">亲切实用</option>
+                <option value="premium">高端品质</option>
+                <option value="outdoor">户外运动</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row single">
+            <div class="field"><label>特殊要求（选填）</label><input type="text" id="s4_special" placeholder="如：必须包含 patented，语气专业，避免 best"></div>
+          </div>
+        </div>
+        <button class="btn green full" onclick="runStep4()" style="font-size:14px;padding:12px;">◆ 生成完整 Listing 资产包 →</button>
+        <div class="result-wrap">
+          <div class="result-box" id="result4"></div>
+          <div class="result-actions" id="actions4" style="display:none">
+            <button class="btn green" style="font-size:14px;padding:11px 24px;font-weight:600" onclick="exportProjectXLS()">📦 一键导出完整项目（含前4步全部输入+AI结果）</button>
+            <button class="btn" onclick="copyResult('result4')">复制 Listing 结果</button>
+            <button class="btn" onclick="gotoStep(3)">← 返回 Step 3</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div>
+
+<div class="copy-toast" id="toast">已复制到剪贴板</div>
+
+<script>
+/* ── globals ── */
+var STORAGE_KEY='amz_listing_wb_v42';
+var API_KEY='',API_ENDPOINT='https://api.moonshot.cn/v1',API_MODEL='kimi-k2.5';
+var chips=[];
+var uploadedImages=[]; // [{name,dataUrl,base64,mimeType}]
+var results={r1:'',r2:'',r3:'',r4:''};
+var done={1:false,2:false,3:false,4:false};
+var currentStep=1,compCount=0,saveTimer=null;
+var STEP_TITLES={
+  1:['Step 1 · 产品信息建档与需求假设','填写产品基础属性、规避词库和实拍图，AI进行逻辑自检与关键词预判'],
+  2:['Step 2 · 竞品情报与需求验证','填入竞品数据+粘贴Review文本，AI提取高频词并验证Step 1假设'],
+  3:['Step 3 · 关键词战略规划','整合ABA数据和第三方反查，AI输出关键词布局图和广告词库'],
+  4:['Step 4 · Listing资产包生成','一键生成标题方案、五点描述、图片brief、Search Term和广告词库']
+};
+
+/* ─────────────────────────────────────────────────────────
+   IMAGES
+───────────────────────────────────────────────────────── */
+function handleImgUpload(e){
+  var files=Array.from(e.target.files);
+  var remaining=3-uploadedImages.length;
+  if(remaining<=0){showToast('最多上传3张图片');return;}
+  files.slice(0,remaining).forEach(function(f){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var dataUrl=ev.target.result;
+      var base64=dataUrl.split(',')[1];
+      var mimeType=f.type||'image/jpeg';
+      uploadedImages.push({name:f.name,dataUrl:dataUrl,base64:base64,mimeType:mimeType});
+      renderImgPreviews();
+      scheduleSave();
+    };
+    reader.readAsDataURL(f);
+  });
+  e.target.value='';
+}
+
+function renderImgPreviews(){
+  var wrap=document.getElementById('img-previews');
+  wrap.innerHTML='';
+  uploadedImages.forEach(function(img,i){
+    var div=document.createElement('div');
+    div.className='img-preview-item';
+    div.innerHTML='<img src="'+img.dataUrl+'" /><button class="img-remove-btn" onclick="removeImg('+i+')">×</button>';
+    wrap.appendChild(div);
+  });
+  if(uploadedImages.length<3){
+    var lbl=document.createElement('label');
+    lbl.className='img-add-btn';
+    lbl.title='添加图片';
+    lbl.innerHTML='+<input type="file" accept="image/*" multiple onchange="handleImgUpload(event)" style="display:none"/>';
+    wrap.appendChild(lbl);
+  }
+  document.getElementById('analyze-img-btn').style.display=uploadedImages.length>0?'inline-flex':'none';
+}
+
+function removeImg(i){
+  uploadedImages.splice(i,1);
+  renderImgPreviews();
+  scheduleSave();
+}
+
+async function analyzeImages(){
+  if(!API_KEY){showToast('请先配置 API Key');return;}
+  if(uploadedImages.length===0){showToast('请先上传图片');return;}
+  var box=document.getElementById('img-result');
+  box.className='result-box show loading';
+  box.textContent='◌ AI 识别实拍图中，请稍候…';
+  try{
+    var content=[{type:'text',text:'你是亚马逊产品分析专家。请分析以下产品实拍图，用中文输出：\n1.【外观描述】产品颜色、材质感、工艺细节\n2.【可见卖点】从图片直接可见的功能特点和差异化优势\n3.【目标人群推断】根据产品外观和设计风格推断使用人群\n4.【使用场景推断】可能的使用场景\n5.【Listing建档建议】基于图片补充或修正建档信息的建议\n\n请用表格或分点格式输出。'}];
+    uploadedImages.forEach(function(img){
+      content.push({type:'image_url',image_url:{url:'data:'+img.mimeType+';base64,'+img.base64}});
+    });
+    var resp=await fetch(API_ENDPOINT+'/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
+      body:JSON.stringify({model:API_MODEL,max_tokens:2000,messages:[{role:'user',content:content}]})
+    });
+    var data=await resp.json();
+    if(data.error){box.className='result-box show';box.textContent='错误：'+(data.error.message||JSON.stringify(data.error));return;}
+    var text=(data.choices&&data.choices[0]&&data.choices[0].message)?data.choices[0].message.content||'':'';
+    box.className='result-box show';box.textContent=text;
+  }catch(err){
+    box.className='result-box show';
+    box.textContent='请求失败：'+err.message+'\n\n请确认：\n1. 已选择 kimi-k2.5 或 kimi-k2.6 模型（支持图片）\n2. API Key 正确\n3. 网络正常';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   CHIPS (USP only)
+───────────────────────────────────────────────────────── */
+function addChip(e){
+  if(e.key!=='Enter'&&e.key!==',')return;
+  e.preventDefault();
+  var v=e.target.value.trim();
+  if(!v)return;
+  if(chips.length>=3){showToast('最多3个差异化卖点');e.target.value='';return;}
+  chips.push(v);e.target.value='';renderChips();scheduleSave();
+  document.getElementById('s1_usp').value=chips.join(' / ');
+}
+function removeChip(i){chips.splice(i,1);renderChips();document.getElementById('s1_usp').value=chips.join(' / ');scheduleSave();}
+function renderChips(){
+  var w=document.getElementById('chips-wrap');
+  w.querySelectorAll('.chip').forEach(function(c){c.remove();});
+  chips.forEach(function(c,i){
+    var s=document.createElement('span');s.className='chip';
+    s.innerHTML=c+'<span class="chip-x" onclick="removeChip('+i+')">×</span>';
+    w.insertBefore(s,w.querySelector('#chip-inp'));
+  });
+}
+
+/* ─────────────────────────────────────────────────────────
+   LOCAL STORAGE
+───────────────────────────────────────────────────────── */
+function getVal(id){var e=document.getElementById(id);return e?e.value:'';}
+function setVal(id,val){var e=document.getElementById(id);if(e&&val!=null)e.value=val;}
+
+function collectState(){
+  return{
+    _ver:41,_ts:Date.now(),
+    api:{key:API_KEY,endpoint:API_ENDPOINT,model:API_MODEL},
+    currentStep:currentStep,
+    chips:chips,
+    uploadedImages:uploadedImages.map(function(i){return{name:i.name,dataUrl:i.dataUrl,base64:i.base64,mimeType:i.mimeType};}),
+    imgResult:document.getElementById('img-result').textContent||'',
+    results:results,done:done,
+    s1:{name:getVal('s1_name'),material:getVal('s1_material'),spec:getVal('s1_spec'),cert:getVal('s1_cert'),func:getVal('s1_func'),audience:getVal('s1_audience'),scene:getVal('s1_scene'),pain:getVal('s1_pain'),blocked:getVal('s1_blocked')},
+    competitors:collectCompetitors(),
+    s3:{aba:collectTableRows('aba-tbody'),h10:collectTableRows('h10-tbody'),strategy:getVal('s3_strategy')},
+    s4:{style:getVal('s4_style'),tone:getVal('s4_tone'),special:getVal('s4_special')}
+  };
+}
+
+function collectCompetitors(){
+  var comps=[];
+  document.querySelectorAll('#comp-list .comp-card').forEach(function(c){
+    comps.push({asin:c.querySelector('.c-asin').value,price:c.querySelector('.c-price').value,title:c.querySelector('.c-title').value,bullets:c.querySelector('.c-bullets').value,reviews:c.querySelector('.c-reviews').value,reviewText:c.querySelector('.c-review-text').value});
+  });
+  return comps;
+}
+
+function collectTableRows(id){
+  var tbody=document.getElementById(id);if(!tbody)return[];
+  var rows=[];
+  tbody.querySelectorAll('tr').forEach(function(tr){var inputs=tr.querySelectorAll('input');rows.push([inputs[0].value,inputs[1].value]);});
+  return rows;
+}
+
+function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(collectState()));flashSaveIndicator();}catch(e){}}
+function scheduleSave(){if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(saveState,800);}
+function flashSaveIndicator(){var el=document.getElementById('save-indicator');el.classList.add('show');setTimeout(function(){el.classList.remove('show');},1500);}
+function loadState(){try{var r=localStorage.getItem(STORAGE_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+
+function restoreState(state){
+  if(!state)return false;
+  if(state.api){API_KEY=state.api.key||'';API_ENDPOINT=state.api.endpoint||'https://api.moonshot.cn/v1';API_MODEL=state.api.model||'kimi-k2.5';setVal('api-key-input',API_KEY);setVal('api-endpoint',API_ENDPOINT);setVal('api-model',API_MODEL);if(API_KEY){updateApiStatus(true);document.getElementById('api-body').classList.add('collapsed');document.getElementById('api-arrow').classList.remove('open');}}
+  if(state.s1){setVal('s1_name',state.s1.name);setVal('s1_material',state.s1.material);setVal('s1_spec',state.s1.spec);setVal('s1_cert',state.s1.cert);setVal('s1_func',state.s1.func);setVal('s1_audience',state.s1.audience);setVal('s1_scene',state.s1.scene);setVal('s1_pain',state.s1.pain);setVal('s1_blocked',state.s1.blocked||state.s1.patent_risk||'');}
+  if(state.chips&&state.chips.length){chips=state.chips;renderChips();document.getElementById('s1_usp').value=chips.join(' / ');}
+  if(state.uploadedImages&&state.uploadedImages.length){uploadedImages=state.uploadedImages;renderImgPreviews();}
+  if(state.imgResult){var ib=document.getElementById('img-result');ib.className='result-box show';ib.textContent=state.imgResult;}
+  if(state.competitors&&state.competitors.length){var list=document.getElementById('comp-list');list.innerHTML='';compCount=0;state.competitors.forEach(function(comp,idx){compCount=idx+1;list.innerHTML+=buildCompCard(compCount,idx===0);});var cards=list.querySelectorAll('.comp-card');state.competitors.forEach(function(comp,idx){if(!cards[idx])return;cards[idx].querySelector('.c-asin').value=comp.asin||'';cards[idx].querySelector('.c-price').value=comp.price||'';cards[idx].querySelector('.c-title').value=comp.title||'';cards[idx].querySelector('.c-bullets').value=comp.bullets||'';cards[idx].querySelector('.c-reviews').value=comp.reviews||'';cards[idx].querySelector('.c-review-text').value=comp.reviewText||'';});updateCompHint();}else{initCompetitors();}
+  if(state.s3){restoreTable('aba-tbody',state.s3.aba);restoreTable('h10-tbody',state.s3.h10);if(state.s3.strategy)setVal('s3_strategy',state.s3.strategy);}
+  if(state.s4){if(state.s4.style)setVal('s4_style',state.s4.style);if(state.s4.tone)setVal('s4_tone',state.s4.tone);setVal('s4_special',state.s4.special);}
+  if(state.results){results=state.results;for(var k in results){var num=k.replace('r','');if(results[k]){var box=document.getElementById('result'+num);box.className='result-box show';box.textContent=results[k];var actions=document.getElementById('actions'+num);if(actions)actions.style.display='flex';}}}
+  if(state.done){done=state.done;var count=0;for(var n in done){if(done[n]){count++;document.getElementById('tab'+n).classList.add('done');}}document.getElementById('prog-text').textContent=count+' / 4';document.getElementById('prog-fill').style.width=(count*25)+'%';}
+  if(state.currentStep)gotoStep(state.currentStep);
+  return true;
+}
+
+function restoreTable(id,rows){var tbody=document.getElementById(id);if(!tbody)return;tbody.innerHTML='';if(!rows||!rows.length){addTableRow(id,['','']);return;}rows.forEach(function(r){addTableRow(id,r);});}
+
+function clearAllData(){if(!confirm('确定要清空全部数据吗？\n\n包括：产品信息、规避词库、实拍图、竞品数据、关键词数据、AI 分析结果。此操作不可撤销。'))return;localStorage.removeItem(STORAGE_KEY);location.reload();}
+
+function setupAutoSave(){
+  document.addEventListener('input',function(e){var tag=e.target.tagName;if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')scheduleSave();});
+  document.addEventListener('change',function(e){var tag=e.target.tagName;var type=e.target.type;if(tag==='SELECT'||type==='checkbox')scheduleSave();});
+}
+
+/* ─────────────────────────────────────────────────────────
+   EXPORT / IMPORT
+───────────────────────────────────────────────────────── */
+function exportProjectJSON(){
+  var state=collectState();
+  // strip base64 images to avoid huge files
+  var exportState=JSON.parse(JSON.stringify(state));
+  exportState.uploadedImages=(exportState.uploadedImages||[]).map(function(i){return{name:i.name};});
+  var blob=new Blob([JSON.stringify(exportState,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;
+  var name=getVal('s1_name')||'project';
+  a.download='listing_'+name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(url);showToast('JSON 项目已导出');
+}
+
+function importProject(event){
+  var file=event.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var state=JSON.parse(e.target.result);
+      if(!state._ver&&!state.s1&&!state.api){showToast('文件格式不正确');return;}
+      chips=[];uploadedImages=[];results={r1:'',r2:'',r3:'',r4:''};done={1:false,2:false,3:false,4:false};
+      restoreState(state);saveState();showToast('项目已导入');
+    }catch(err){showToast('导入失败：'+err.message);}
+  };
+  reader.readAsText(file);event.target.value='';
+}
+
+function exportTableXLS(tbodyId,headers,sheetName){
+  var tbody=document.getElementById(tbodyId);var data=[headers];
+  tbody.querySelectorAll('tr').forEach(function(tr){var inputs=tr.querySelectorAll('input');var row=[inputs[0].value,inputs[1].value];if(row[0]||row[1])data.push(row);});
+  if(data.length===1){showToast('没有数据可导出');return;}
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.aoa_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,sheetName||'数据');
+  XLSX.writeFile(wb,(sheetName||'数据')+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('已导出 XLS');
+}
+
+function exportStepResultXLS(step){
+  var text=results['r'+step];
+  if(!text){showToast('该步骤还没有AI结果');return;}
+  var wb=XLSX.utils.book_new();
+  var lines=text.split('\n');
+  var data=lines.map(function(l){return[l];});
+  var ws=XLSX.utils.aoa_to_sheet([['Step '+step+' AI分析结果']].concat(data));
+  XLSX.utils.book_append_sheet(wb,ws,'Step'+step+'结果');
+  var name=getVal('s1_name')||'product';
+  XLSX.writeFile(wb,'Step'+step+'_'+name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('Step '+step+' 结果已导出 XLS');
+}
+
+function exportProjectXLS(){
+  var wb=XLSX.utils.book_new();
+  var name=getVal('s1_name')||'product';
+
+  // Sheet 1: 产品档案
+  var s1Data=[
+    ['字段','内容'],
+    ['产品名称',getVal('s1_name')],['核心材质',getVal('s1_material')],
+    ['规格参数',getVal('s1_spec')],['认证信息',getVal('s1_cert')],
+    ['核心功能',getVal('s1_func')],['目标人群',getVal('s1_audience')],
+    ['使用场景',getVal('s1_scene')],['核心痛点',getVal('s1_pain')],
+    ['差异化卖点',chips.join(' / ')],
+    ['规避词库',getVal('s1_blocked')]
+  ];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s1Data),'产品档案');
+
+  // Sheet 2: 竞品数据
+  var compData=[['#','ASIN','价格','标题','五点描述','Review摘录','Review粘贴文本']];
+  document.querySelectorAll('#comp-list .comp-card').forEach(function(c,i){
+    compData.push([i+1,c.querySelector('.c-asin').value,c.querySelector('.c-price').value,c.querySelector('.c-title').value,c.querySelector('.c-bullets').value,c.querySelector('.c-reviews').value,c.querySelector('.c-review-text').value]);
+  });
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(compData),'竞品数据');
+
+  // Sheet 3: ABA数据
+  var abaRows=[['关键词','ABA排名']];
+  document.querySelectorAll('#aba-tbody tr').forEach(function(tr){var ins=tr.querySelectorAll('input');if(ins[0].value||ins[1].value)abaRows.push([ins[0].value,ins[1].value]);});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(abaRows),'ABA数据');
+
+  // Sheet 4: 第三方反查
+  var h10Rows=[['关键词','月搜索量']];
+  document.querySelectorAll('#h10-tbody tr').forEach(function(tr){var ins=tr.querySelectorAll('input');if(ins[0].value||ins[1].value)h10Rows.push([ins[0].value,ins[1].value]);});
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(h10Rows),'第三方反查');
+
+  // Sheets 5-8: AI结果
+  for(var i=1;i<=4;i++){
+    if(results['r'+i]){
+      var lines=results['r'+i].split('\n').map(function(l){return[l];});
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Step '+i+' AI分析结果']].concat(lines)),'Step'+i+'AI结果');
+    }
+  }
+
+  XLSX.writeFile(wb,'完整项目_'+name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('完整项目 XLS 已导出');
+}
+
+function exportProjectXLS_sidebar(){exportProjectXLS();}
+
+
+/* ─────────────────────────────────────────────────────────
+   XLS PROJECT TEMPLATE — Import / Download
+───────────────────────────────────────────────────────── */
+function downloadProjectTemplate(){
+  // Build the same 4-sheet template inside the browser using SheetJS
+  var wb=XLSX.utils.book_new();
+  
+  // Sheet 1: 填写说明
+  var instr=[
+    ['📋 Amazon Listing 工作台 · 产品建档模板 · v4.1'],
+    [''],
+    ['使用说明：'],
+    ['1. 在「产品建档」Sheet 填基础信息，红色提示=必填'],
+    ['2. 在「竞品数据」Sheet 填至少 3 个竞品（前 3 行必填）'],
+    ['3. 在「ABA数据」Sheet 填 ABA 关键词（选填）'],
+    ['4. 在「第三方反查」Sheet 填 H10/JS 数据（选填）'],
+    ['5. 保存后在工作台点「📥 导入 XLS 项目模板」'],
+    [''],
+    ['注意：实拍图不能在 Excel 里填，要在工作台 Step 1 直接上传'],
+    [''],
+    ['规避词库怎么填？'],
+    ['  把所有有风险的词全部填到一个单元格里，逗号分隔'],
+    ['  包括：他人品牌、违禁词、促销词、专利风险词'],
+    ['  例：Nike, MagSafe, best, #1, FDA approved, fingerprint lock']
+  ];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(instr),'填写说明');
+  
+  // Sheet 2: 产品建档
+  var s1Tpl=[
+    ['字段','你的填写','示例 / 提示'],
+    ['产品名称 *','','折叠自行车锁 / 装饰开关盖板'],
+    ['核心材质 *','','hardened steel / 塑料 PLA'],
+    ['规格参数 *','','380g 30cm展开 / 5x3.5 inch 1-gang'],
+    ['核心功能 *','','解决什么问题？例：快速锁定自行车 5秒展开'],
+    ['认证信息','','FDA / CE / UL / CPC / 专利号等（选填）'],
+    ['目标人群 *','','25-35岁城市上班族 / 有0-6岁孩子的父母'],
+    ['使用场景 *','','地铁口锁车10-30分钟 / 儿童房灯开关装饰'],
+    ['核心痛点 *','','现有产品哪里不好？例：传统锁太重1kg+'],
+    ['差异化卖点1 *','','5秒展开 全市最快'],
+    ['差异化卖点2','','380g 重量比同类轻60%'],
+    ['差异化卖点3','','专利结构 3年保修'],
+    ['规避词库 *','','Nike, MagSafe, best, #1, FDA approved, fingerprint lock']
+  ];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s1Tpl),'产品建档');
+  
+  // Sheet 3: 竞品数据
+  var s2Tpl=[
+    ['#','ASIN','售价','完整标题','五点描述（每点换行）','Review高频词摘要(选填)','Review原文粘贴(推荐)'],
+    [1,'B08XXXXXXX','$29.99','示例：竞品完整标题（直接复制）','点1\n点2\n点3\n点4\n点5','lightweight, easy to use, durable','示例：直接从Amazon产品页把Reviews整段粘贴到这里'],
+    [2,'','','','','',''],[3,'','','','','',''],
+    [4,'','','','','',''],[5,'','','','','',''],
+    [6,'','','','','',''],[7,'','','','','','']
+  ];
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s2Tpl),'竞品数据');
+  
+  // Sheet 4: ABA
+  var s3Tpl=[['关键词','ABA排名'],['bike lock',1234]];
+  for(var i=0;i<18;i++)s3Tpl.push(['','']);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s3Tpl),'ABA数据');
+  
+  // Sheet 5: 第三方反查
+  var s4Tpl=[['关键词','月搜索量'],['foldable bike lock',8500]];
+  for(var i=0;i<18;i++)s4Tpl.push(['','']);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s4Tpl),'第三方反查');
+  
+  XLSX.writeFile(wb,'产品建档模板_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  showToast('模板已下载，请填写后再导入');
+}
+
+function importProjectXLS(event){
+  var file=event.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=new Uint8Array(e.target.result);
+      var wb=XLSX.read(data,{type:'array'});
+      var imported={s1:0,comp:0,aba:0,h10:0};
+      
+      // Sheet: 产品建档
+      var s1Sheet=wb.Sheets['产品建档'];
+      if(s1Sheet){
+        var s1Rows=XLSX.utils.sheet_to_json(s1Sheet,{header:1});
+        var s1Map={};
+        s1Rows.forEach(function(r){
+          if(!r||r.length<2)return;
+          var label=String(r[0]||'').replace(/\s*\*\s*$/,'').trim();
+          var value=String(r[1]||'').trim();
+          if(label&&value)s1Map[label]=value;
+        });
+        var fieldMap={
+          '产品名称':'s1_name','核心材质':'s1_material','规格参数':'s1_spec',
+          '核心功能':'s1_func','认证信息':'s1_cert',
+          '目标人群':'s1_audience','使用场景':'s1_scene','核心痛点':'s1_pain',
+          '规避词库':'s1_blocked'
+        };
+        for(var k in fieldMap){if(s1Map[k]){setVal(fieldMap[k],s1Map[k]);imported.s1++;}}
+        // USP chips
+        chips=[];
+        ['差异化卖点1','差异化卖点2','差异化卖点3'].forEach(function(k){if(s1Map[k])chips.push(s1Map[k]);});
+        if(chips.length){renderChips();document.getElementById('s1_usp').value=chips.join(' / ');imported.s1++;}
+      }
+      
+      // Sheet: 竞品数据
+      var compSheet=wb.Sheets['竞品数据'];
+      if(compSheet){
+        var compRows=XLSX.utils.sheet_to_json(compSheet,{header:1});
+        var newComps=[];
+        compRows.forEach(function(r,idx){
+          if(idx===0)return; // skip header
+          if(!r||r.length<2)return;
+          // Skip example row (where ASIN starts with B08XXX)
+          var asin=String(r[1]||'').trim();
+          if(!asin||asin==='B08XXXXXXX')return;
+          newComps.push({
+            asin:asin,
+            price:String(r[2]||'').trim(),
+            title:String(r[3]||'').trim(),
+            bullets:String(r[4]||'').trim(),
+            reviews:String(r[5]||'').trim(),
+            reviewText:String(r[6]||'').trim()
+          });
+        });
+        if(newComps.length){
+          var list=document.getElementById('comp-list');list.innerHTML='';compCount=0;
+          newComps.forEach(function(c,i){compCount=i+1;list.innerHTML+=buildCompCard(compCount,i===0);});
+          // also add 2 empty slots if fewer than 5
+          while(compCount<5){compCount++;list.innerHTML+=buildCompCard(compCount,false);}
+          var cards=list.querySelectorAll('.comp-card');
+          newComps.forEach(function(c,i){
+            if(!cards[i])return;
+            cards[i].querySelector('.c-asin').value=c.asin;
+            cards[i].querySelector('.c-price').value=c.price;
+            cards[i].querySelector('.c-title').value=c.title;
+            cards[i].querySelector('.c-bullets').value=c.bullets;
+            cards[i].querySelector('.c-reviews').value=c.reviews;
+            cards[i].querySelector('.c-review-text').value=c.reviewText;
+          });
+          updateCompHint();
+          imported.comp=newComps.length;
+        }
+      }
+      
+      // Sheet: ABA数据
+      var abaSheet=wb.Sheets['ABA数据'];
+      if(abaSheet){
+        var abaRows=XLSX.utils.sheet_to_json(abaSheet,{header:1});
+        var validRows=[];
+        abaRows.forEach(function(r,idx){
+          if(idx===0)return;
+          if(!r||r.length<1)return;
+          var k=String(r[0]||'').trim(),v=String(r[1]||'').trim();
+          // Skip example row
+          if(k==='bike lock'&&v==='1234')return;
+          if(k)validRows.push([k,v]);
+        });
+        if(validRows.length){
+          var tbody=document.getElementById('aba-tbody');tbody.innerHTML='';
+          validRows.forEach(function(r){addTableRow('aba-tbody',r);});
+          imported.aba=validRows.length;
+        }
+      }
+      
+      // Sheet: 第三方反查
+      var h10Sheet=wb.Sheets['第三方反查'];
+      if(h10Sheet){
+        var h10Rows=XLSX.utils.sheet_to_json(h10Sheet,{header:1});
+        var validH10=[];
+        h10Rows.forEach(function(r,idx){
+          if(idx===0)return;
+          if(!r||r.length<1)return;
+          var k=String(r[0]||'').trim(),v=String(r[1]||'').trim();
+          if(k==='foldable bike lock'&&(v==='8.5%'||v==='8500'))return;
+          if(k)validH10.push([k,v]);
+        });
+        if(validH10.length){
+          var tbody=document.getElementById('h10-tbody');tbody.innerHTML='';
+          validH10.forEach(function(r){addTableRow('h10-tbody',r);});
+          imported.h10=validH10.length;
+        }
+      }
+      
+      saveState();
+      var msg='导入成功！产品建档:'+imported.s1+' | 竞品:'+imported.comp+' | ABA:'+imported.aba+' | 反查:'+imported.h10;
+      showToast(msg);
+    }catch(err){showToast('导入失败：'+err.message);}
+  };
+  reader.readAsArrayBuffer(file);event.target.value='';
+}
+
+/* ─────────────────────────────────────────────────────────
+   XLS IMPORT for keyword tables
+───────────────────────────────────────────────────────── */
+function importXLS(event,tbodyId){
+  var file=event.target.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=new Uint8Array(e.target.result);
+      var workbook=XLSX.read(data,{type:'array'});
+      var worksheet=workbook.Sheets[workbook.SheetNames[0]];
+      var jsonData=XLSX.utils.sheet_to_json(worksheet,{header:1});
+      document.getElementById(tbodyId).innerHTML='';
+      var imported=0;
+      jsonData.forEach(function(row){
+        if(!row||row.length<1)return;
+        var firstCell=String(row[0]||'').trim().toLowerCase();
+        if(imported===0&&(firstCell==='关键词'||firstCell==='keyword'||firstCell==='关键字'))return;
+        var col1=String(row[0]||'').trim(),col2=String(row[1]||'').trim();
+        if(col1){addTableRow(tbodyId,[col1,col2]);imported++;}
+      });
+      if(imported===0){addTableRow(tbodyId,['','']);showToast('未找到有效数据');}
+      else{showToast('已导入 '+imported+' 行数据');scheduleSave();}
+    }catch(err){showToast('文件解析失败：'+err.message);}
+  };
+  reader.readAsArrayBuffer(file);event.target.value='';
+}
+
+function addTableRow(tbodyId,vals){
+  var tbody=document.getElementById(tbodyId);if(!tbody)return;
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td><input type="text" value="'+escHtml(vals[0]||'')+'" placeholder="关键词…" onchange="scheduleSave()" /></td><td><input type="text" value="'+escHtml(vals[1]||'')+'" placeholder="数值…" onchange="scheduleSave()" /></td><td class="row-action"><button onclick="this.closest(\'tr\').remove();scheduleSave()">×</button></td>';
+  tbody.appendChild(tr);
+}
+
+function clearTable(tbodyId,tableName){
+  var tbody=document.getElementById(tbodyId);if(!tbody)return;
+  var rowCount=tbody.querySelectorAll('tr').length;
+  if(rowCount===0){showToast('表格已是空的');return;}
+  if(!confirm('确定要清空「'+tableName+'」的所有数据吗？\n\n共 '+rowCount+' 行。此操作不可撤销。'))return;
+  tbody.innerHTML='';
+  // 保留 3 行空白行方便继续输入
+  addTableRow(tbodyId,['','']);addTableRow(tbodyId,['','']);addTableRow(tbodyId,['','']);
+  scheduleSave();
+  showToast('已清空 '+tableName);
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function getTableData(tbodyId){
+  var tbody=document.getElementById(tbodyId);var rows=[];
+  tbody.querySelectorAll('tr').forEach(function(tr){var inputs=tr.querySelectorAll('input');var col1=inputs[0].value.trim(),col2=inputs[1].value.trim();if(col1||col2)rows.push(col1+' | '+col2);});
+  return rows.join('\n');
+}
+
+/* ─────────────────────────────────────────────────────────
+   API CONFIG
+───────────────────────────────────────────────────────── */
+function toggleApiCard(){var body=document.getElementById('api-body');var arrow=document.getElementById('api-arrow');var c=body.classList.contains('collapsed');body.classList.toggle('collapsed',!c);arrow.classList.toggle('open',c);}
+function onEndpointChange(){}
+function saveApiKey(){var key=document.getElementById('api-key-input').value.trim();if(!key){alert('请输入 API Key');return;}API_KEY=key;API_ENDPOINT=document.getElementById('api-endpoint').value;API_MODEL=document.getElementById('api-model').value;updateApiStatus(true);saveState();showToast('API 配置已保存到本地');}
+function updateApiStatus(connected){var el=document.getElementById('api-status');el.textContent=connected?'已连接':'未连接';el.className='api-status '+(connected?'connected':'disconnected');}
+async function testApiKey(){
+  var key=document.getElementById('api-key-input').value.trim();var endpoint=document.getElementById('api-endpoint').value;var model=document.getElementById('api-model').value;
+  if(!key){alert('请先输入 API Key');return;}
+  var statusEl=document.getElementById('api-status');statusEl.textContent='测试中…';statusEl.className='api-status disconnected';
+  try{
+    var resp=await fetch(endpoint+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:model,max_tokens:20,messages:[{role:'user',content:'请回复"连接成功"四个字'}]})});
+    var data=await resp.json();
+    if(data.error){updateApiStatus(false);alert('连接失败：'+(data.error.message||JSON.stringify(data.error)));}
+    else{API_KEY=key;API_ENDPOINT=endpoint;API_MODEL=model;updateApiStatus(true);saveState();showToast('连接成功！模型：'+model);}
+  }catch(err){updateApiStatus(false);alert('连接失败：'+err.message);}
+}
+
+/* ─────────────────────────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────────────────────────── */
+function gotoStep(n){for(var i=1;i<=4;i++){document.getElementById('panel'+i).classList.toggle('active',i===n);document.getElementById('tab'+i).classList.toggle('active',i===n);}currentStep=n;document.getElementById('topbar-title').textContent=STEP_TITLES[n][0];document.getElementById('topbar-sub').textContent=STEP_TITLES[n][1];scheduleSave();}
+
+/* ─────────────────────────────────────────────────────────
+   COMPETITOR CARDS
+───────────────────────────────────────────────────────── */
+function buildCompCard(index,isOpen){
+  var isRequired=index<=3;
+  var badge=isRequired?'<span class="comp-badge-req">必填</span>':'<span class="comp-badge-opt">选填</span>';
+  var removeBtn=!isRequired?'<button class="comp-remove-btn" onclick="event.stopPropagation();removeCompetitor(this)" title="删除此竞品">×</button>':'';
+  var arrowClass=isOpen?'comp-arrow open':'comp-arrow';
+  var bodyClass=isOpen?'comp-body open':'comp-body';
+  var reqMark=isRequired?'<span class="req">*</span>':'';
+  return '<div class="comp-card" data-comp-index="'+index+'">' +
+    '<div class="comp-header" onclick="toggleComp(this)"><div class="comp-header-left">竞品 '+index+' '+badge+'</div><div class="comp-header-actions">'+removeBtn+'<span class="'+arrowClass+'">▼</span></div></div>' +
+    '<div class="'+bodyClass+'">' +
+      '<div class="field-row"><div class="field"><label>ASIN'+reqMark+'</label><input type="text" class="c-asin" placeholder="B08XXXX'+index+'" /></div><div class="field"><label>售价'+reqMark+'</label><input type="text" class="c-price" placeholder="$29.99" /></div></div>' +
+      '<div class="field-row single"><div class="field"><label>完整标题'+reqMark+'</label><textarea class="c-title" rows="2" placeholder="完整复制竞品标题"></textarea></div></div>' +
+      '<div class="field-row single"><div class="field"><label>五点描述'+reqMark+'</label><textarea class="c-bullets" rows="4" placeholder="完整复制5点描述，每点换行"></textarea></div></div>' +
+      '<div class="field-row single"><div class="field"><label>Review 高频词摘要（选填，逗号分隔）</label><textarea class="c-reviews" rows="2" placeholder="lightweight, easy to use, durable…（如有Helium10数据可在此填）"></textarea></div></div>' +
+      '<div class="field-row single"><div class="field"><label>📋 粘贴 Review 原文（让 AI 分析高频词）</label><textarea class="c-review-text" rows="6" placeholder="直接从 Amazon 产品页把 Reviews 复制粘贴到这里，AI 会自动分析高频词、使用场景词、人群词、情绪词。可以一次粘贴多条 Review 文本。"></textarea><div class="hint">无需手动整理，直接粘贴即可。粘贴后将在 AI 分析时自动提取。</div></div></div>' +
+    '</div></div>';
+}
+
+function initCompetitors(){var list=document.getElementById('comp-list');list.innerHTML='';compCount=0;for(var i=1;i<=5;i++){compCount=i;list.innerHTML+=buildCompCard(i,i===1);}updateCompHint();}
+function addCompetitor(){compCount++;var list=document.getElementById('comp-list');list.innerHTML+=buildCompCard(compCount,true);updateCompHint();var cards=list.querySelectorAll('.comp-card');cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'center'});scheduleSave();}
+function removeCompetitor(btn){if(!confirm('确定删除此竞品？'))return;btn.closest('.comp-card').remove();updateCompHint();scheduleSave();}
+function updateCompHint(){var total=document.querySelectorAll('#comp-list .comp-card').length;document.getElementById('comp-count-hint').textContent='当前共 '+total+' 个竞品';}
+function toggleComp(header){var body=header.nextElementSibling;var arrow=header.querySelector('.comp-arrow');body.classList.toggle('open');arrow.classList.toggle('open');}
+
+/* ─────────────────────────────────────────────────────────
+   PROMPT BUILDERS
+───────────────────────────────────────────────────────── */
+function getBlockedStr(){
+  var v=getVal('s1_blocked').trim();
+  if(!v)return'';
+  return '\n\n【⛔ 规避词库】\n以下所有词语严禁出现在 Title / Bullet Points / Search Term / Product Description 中：\n'+v+'\n（包括他人品牌、商标、违禁词、促销词、专利风险词）';
+}
+
+function buildStep1Prompt(){
+  return '你是一名亚马逊产品策略分析师，请基于以下产品信息进行分析，中文输出分析，英文输出关键词预判。\n\n【产品信息】\n产品名称：'+getVal('s1_name')+'\n核心材质：'+getVal('s1_material')+'\n规格参数：'+getVal('s1_spec')+'\n核心功能：'+getVal('s1_func')+'\n认证信息：'+(getVal('s1_cert')||'无')+'\n\n目标人群：'+getVal('s1_audience')+'\n使用场景：'+getVal('s1_scene')+'\n核心痛点：'+getVal('s1_pain')+'\n差异化卖点：'+(chips.join(' / ')||'未填写')+getBlockedStr()+'\n\n请输出：\n1. 【逻辑自检】卖点与痛点对应关系表格（✓强对应 / ⚠️弱对应 / ✗无对应）\n2. 【预判关键词（英文）】10-15个，按相关性排序，标注来源\n3. 【待验证问题清单】3-5个必须用竞品数据回答的问题\n4. 【规避词核查】确认以上规避词库已理解，并说明哪些词在本品类中高风险\n5. 【风险提示】如有';
+}
+
+function buildStep2Prompt(){
+  var comps=document.querySelectorAll('#comp-list .comp-card');
+  var cd='';var count=0;
+  comps.forEach(function(c){
+    var asin=c.querySelector('.c-asin').value.trim(),title=c.querySelector('.c-title').value.trim();
+    if(!asin&&!title)return;
+    count++;
+    var reviewText=c.querySelector('.c-review-text').value.trim();
+    var reviewNote=reviewText?'\nReview原文（请从此文本提取高频词）:\n'+reviewText.slice(0,2000)+(reviewText.length>2000?'\n[截断，原文更长]':''):'\nReview高频词(预提取)：'+c.querySelector('.c-reviews').value;
+    cd+='\n竞品'+count+'：\nASIN: '+c.querySelector('.c-asin').value+'\nPrice: '+c.querySelector('.c-price').value+'\nTitle: '+c.querySelector('.c-title').value+'\n五点描述: '+c.querySelector('.c-bullets').value+reviewNote+'\n';
+  });
+  return '你是一名亚马逊竞品情报分析师。\n\n【Step 1产品档案】\n产品：'+getVal('s1_name')+' | 材质：'+getVal('s1_material')+' | 规格：'+getVal('s1_spec')+'\n目标人群：'+getVal('s1_audience')+' | 场景：'+getVal('s1_scene')+'\n痛点：'+getVal('s1_pain')+' | 差异化卖点：'+(chips.join(' / ')||'未填写')+getBlockedStr()+'\n\n【竞品数据（共'+count+'个）】'+cd+'\n请输出：\n1. 【Review高频词分析】对每个竞品的Review原文提取：\n   - 高频功能词（top 10）\n   - 使用场景词\n   - 使用人群词（出现频率高的人群描述）\n   - 正面情绪词（客户点赞的关键词）\n   - 负面情绪词（差评关键词，代表痛点）\n   - 以表格格式输出\n2. 【关键词机会值表】从所有竞品提取词，标注在Title/五点/Review中出现次数，机会值（★★★高/★★☆中/★☆☆低）\n3. 【需求验证报告】验证目标人群/使用场景/核心痛点/差异化卖点（✓确认/⚠️调整/✗推翻）\n4. 【市场GAP分析】关键词GAP、场景GAP、卖点GAP\n5. 【Step 3输入词库】分三类：高频高机会词(★★★)、中频机会词(★★☆)、差异化机会词';
+}
+
+function buildStep3Prompt(){
+  var sm={balanced:'平衡版',conservative:'保守版',aggressive:'激进版'};
+  return '你是一名亚马逊SEO策略师。\n\n【产品档案】\n产品：'+getVal('s1_name')+' | 材质：'+getVal('s1_material')+' | 规格：'+getVal('s1_spec')+'\n差异化卖点：'+(chips.join(' / ')||'未填写')+'\n目标人群：'+getVal('s1_audience')+' | 场景：'+getVal('s1_scene')+getBlockedStr()+'\n\n【ABA官方数据（格式：关键词 | ABA排名 / 排名越小搜索量越大）】\n'+(getTableData('aba-tbody')||'（未提供）')+'\n\n【第三方反查数据（卖家精灵·格式：关键词 | 月搜索量）】\n'+(getTableData('h10-tbody')||'（未提供）')+'\n\n策略选择：'+sm[getVal('s3_strategy')]+'\n\n请输出：\n1. 【交叉验证矩阵】关键词 | ABA排名 | 月搜索量 | 综合评分(A+/A/B+/B/C) | 策略分类\n2. 【关键词分类】大词-流量型 / 精准词-转化型 / 长尾词-测试型 / 否定词（各列清单）\n3. 【关键词布局图】每个Listing位置分配哪些词（标题前30字符/31-80/80-200 / 五点1-5 / 后台ST）\n4. 【广告词库分组】Exact精准组 / Phrase词组组 / Broad广泛组 / 否定词库（可直接复制格式）';
+}
+
+function buildStep4Prompt(){
+  var sm={balanced:'平衡版',conservative:'保守版',aggressive:'激进版'};
+  var tm={professional:'专业科技感',friendly:'亲切实用',premium:'高端品质',outdoor:'户外运动'};
+  var special=getVal('s4_special');
+  return '你是一名亚马逊Listing文案专家，精通A9算法。基于以下所有分析数据，生成完整Listing资产包（英文文案，符合Amazon Style Guide）。\n\n【产品信息】\n产品：'+getVal('s1_name')+' | 材质：'+getVal('s1_material')+' | 规格：'+getVal('s1_spec')+'\n核心功能：'+getVal('s1_func')+'\n目标人群：'+getVal('s1_audience')+' | 场景：'+getVal('s1_scene')+'\n差异化卖点：'+(chips.join(' / ')||'未填写')+'\n认证：'+(getVal('s1_cert')||'无')+getBlockedStr()+'\n\nABA数据：'+(getTableData('aba-tbody')||'参考Step 2词库')+'\n文案风格：'+sm[getVal('s4_style')]+' | 品牌调性：'+tm[getVal('s4_tone')]+(special?'\n特殊要求：'+special:'')+'\n\n请按以下顺序输出，每一节都要完整：\n\n【一、标题方案（3版本）】\n版本A（保守版）：完整标题（字符数）+ 埋词说明\n版本B（激进版）：完整标题（字符数）+ 埋词说明\n版本C（平衡版/推荐）：完整标题（字符数）+ 埋词说明 + 推荐理由\n\n【二、产品描述 Product Description（200-2000字符英文）】\n完整一段，自然描述，包含主要关键词\n\n【三、五点描述 Bullet Points（英文，FAB结构，每点≤200字符）】\n第1点~第5点：完整文案 + 埋词 + Feature/Advantage/Benefit标注\n\n【四、后台 Search Term（249字节内，空格分隔，全小写）】\n\n【五、图片需求 Brief（给美工/设计师/AI生图软件）】\n生成 7 张图片的详细 Brief（含 AI 生图 prompt），每张图分三部分：\n  ① 用途：主图 / 场景图 / 功能图 / 细节图 / 对比图 / 尺寸图 / 信任图\n  ② 美工Brief（中文）：构图、内容元素、文字标注、拍摄角度、灯光、风格\n  ③ AI 生图 Prompt（英文）：完整可直接复制到 Midjourney / Stable Diffusion / DALL-E 的英文提示词，包含 style/lighting/composition 等关键词，并说明哪些元素 AI 不能凭空生成（产品本身需用实拍图）\n\n图片清单：\n  图1：主图（白底）\n  图2：使用场景图1（核心场景）\n  图3：使用场景图2（次要场景）\n  图4：核心功能/卖点放大图\n  图5：产品细节/材质特写\n  图6：尺寸标注/规格图\n  图7：对比图（与竞品 OR with/without 效果）\n\n【六、广告词库（可直接复制格式）】\nExact精准组 / Phrase词组组 / Broad广泛组 / 否定词\n\n【七、审核自检清单（10项）】\n- 特别标注：规避词库中的词是否均未出现？请逐一核查并报告\n\n所有文案严格遵循 Amazon Style Guide：禁止 Best/Cheapest 等促销词，禁止全大写，禁止特殊符号。';
+}
+
+/* ─────────────────────────────────────────────────────────
+   AI CALL
+───────────────────────────────────────────────────────── */
+async function callAI(prompt,stepNum){
+  if(!API_KEY){document.getElementById('api-body').classList.remove('collapsed');document.getElementById('api-arrow').classList.add('open');document.getElementById('api-key-input').focus();showToast('请先配置并保存 API Key');return;}
+  var box=document.getElementById('result'+stepNum);
+  var actions=document.getElementById('actions'+stepNum);
+  box.className='result-box show loading';
+  box.textContent='◌ Kimi AI 分析中，请稍候…';
+  if(actions)actions.style.display='none';
+  try{
+    var resp=await fetch(API_ENDPOINT+'/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
+      body:JSON.stringify({
+        model:API_MODEL,max_tokens:4096,
+        messages:[
+          {role:'system',content:'你是亚马逊Listing优化专家，精通A9算法和亚马逊SEO。使用中文分析，关键词和Listing文案用英文输出。格式清晰，善用表格和要点列表。严格遵循Amazon Style Guide。'},
+          {role:'user',content:prompt}
+        ]
+      })
+    });
+    var data=await resp.json();
+    if(data.error){box.className='result-box show';box.textContent='错误：'+(data.error.message||JSON.stringify(data.error));return;}
+    var text=(data.choices&&data.choices[0]&&data.choices[0].message)?data.choices[0].message.content||'':'';
+    results['r'+stepNum]=text;
+    box.className='result-box show';box.textContent=text;
+    if(actions)actions.style.display='flex';
+    markDone(stepNum);saveState();
+  }catch(err){
+    box.className='result-box show';
+    box.textContent='请求失败：'+err.message+'\n\n请检查：\n1. API Key 是否正确\n2. API 入口选择是否匹配（国内用 .cn，国际用 .ai）\n3. 网络是否正常（国际版需要 VPN）';
+  }
+}
+
+function markDone(n){done[n]=true;var count=Object.values(done).filter(Boolean).length;document.getElementById('prog-text').textContent=count+' / 4';document.getElementById('prog-fill').style.width=(count*25)+'%';document.getElementById('tab'+n).classList.add('done');}
+
+function runStep1(){callAI(buildStep1Prompt(),1);}
+function runStep2(){callAI(buildStep2Prompt(),2);}
+function runStep3(){callAI(buildStep3Prompt(),3);}
+function runStep4(){callAI(buildStep4Prompt(),4);}
+
+function copyResult(id){navigator.clipboard.writeText(document.getElementById(id).textContent).then(function(){showToast('已复制到剪贴板');});}
+function copyAllResults(){var all=Object.values(results).filter(Boolean).join('\n\n'+'='.repeat(60)+'\n\n');navigator.clipboard.writeText(all).then(function(){showToast('全部结果已复制');});}
+
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
+
+/* ─────────────────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────────────────── */
+(function init(){
+  var saved=loadState();
+  if(saved){restoreState(saved);}
+  else{
+    initCompetitors();
+    addTableRow('aba-tbody',['','']);addTableRow('aba-tbody',['','']);addTableRow('aba-tbody',['','']);
+    addTableRow('h10-tbody',['','']);addTableRow('h10-tbody',['','']);addTableRow('h10-tbody',['','']);
+  }
+  setupAutoSave();
+})();
+</script>
+
+
+</body></html>
